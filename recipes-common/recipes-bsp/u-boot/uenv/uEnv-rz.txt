@@ -1,0 +1,11 @@
+# Refer to readme.txt for more information on setting up U-Boot Env 
+
+#fdt_extra_overlays=1.dtbo 2.dtbo 3.dtbo
+fdt_extra_overlays=vkrz-sdhi0-emmc.dtbo
+#fdt_extra_overlays=vkrz-sdhi0-sdhi.dtbo
+
+#ethaddr=aa:bb:cc:aa:bb:cc
+#eth1addr=aa:bb:cc:aa:bb:cd
+
+#extrabootargs=video=HDMI-A-1:1920x1080@60.00
+
