@@ -52,7 +52,7 @@
 
 9. go to YOCTO_HOME
     ``` 
-    cd yocto_305 
+    cd yocto_304
     ```
 
 10. `TEMPLATECONF=$PWD/meta-vkrzv2l/docs/template/conf`
