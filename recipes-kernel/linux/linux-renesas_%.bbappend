@@ -2,10 +2,10 @@ COMPATIBLE_MACHINE_vkrzv2l = "vkrzv2l"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-SRCREV = "6d2215071fe0ab3d4ddd65dfa70cb8c91545bd9d"
-
 SRC_URI_append_vkrzv2l = " \
 	file://0001-kernel-add-vkrzv2l-board-support.patch \
+	file://0002-fix-communication-issues-with-lt8912b.patch \
+	file://0003-Add-drpai-and-udmabuf-overlay.patch \
 "
 
 KBUILD_DEFCONFIG = "defconfig"

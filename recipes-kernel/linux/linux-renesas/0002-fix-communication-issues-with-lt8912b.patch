@@ -1,0 +1,33 @@
+From 2457383e65037db30d6d318f700d35f727f9853d Mon Sep 17 00:00:00 2001
+From: Stanimir Bonev <bonev.stanimir@gmail.com>
+Date: Sun, 23 Jul 2023 20:24:59 +0300
+Subject: [PATCH] fix communication issues with lt8912b
+
+---
+ drivers/i2c/busses/i2c-riic.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-riic.c b/drivers/i2c/busses/i2c-riic.c
+index 704d54038bde..0224c32f3edb 100644
+--- a/drivers/i2c/busses/i2c-riic.c
++++ b/drivers/i2c/busses/i2c-riic.c
+@@ -316,16 +316,16 @@ static int riic_init_hw(struct riic_dev *riic, struct i2c_timings *t)
+ 	/*
+ 	 * Determine reference clock rate. We must be able to get the desired
+ 	 * frequency with only 62 clock ticks max (31 high, 31 low).
+-	 * Aim for a duty of 60% LOW, 40% HIGH.
++	 * Aim for a duty of 50% LOW, 50% HIGH.
+ 	 */
+ 	total_ticks = DIV_ROUND_UP(rate, t->bus_freq_hz);
+ 
+ 	for (cks = 0; cks < 7; cks++) {
+ 		/*
+-		 * 60% low time must be less than BRL + 2 + 1
++		 * 50% low time must be less than BRL + 2 + 1
+ 		 * BRL max register value is 0x1F.
+ 		 */
+-		brl = ((total_ticks * 6) / 10);
++		brl = ((total_ticks * 5) / 10);
+ 		if (brl <= (0x1F + 3))
+ 			break;
+ 

@@ -236,7 +236,7 @@ index e6b09052f222..f8555a82a596 100644
 @@ -1376,6 +1376,9 @@ ifneq ($(dtstree),)
  %.dtb: include/config/kernel.release scripts_dtc
  	$(Q)$(MAKE) $(build)=$(dtstree) $(dtstree)/$@
- 
+
 +%.dtbo: include/config/kernel.release scripts_dtc
 +	$(Q)$(MAKE) $(build)=$(dtstree) $(dtstree)/$@
 +
@@ -257,9 +257,9 @@ index 65754c43292b..30901e23f8ce 100644
 --- a/arch/arm64/boot/dts/renesas/Makefile
 +++ b/arch/arm64/boot/dts/renesas/Makefile
 @@ -94,3 +94,7 @@ dtb-$(CONFIG_ARCH_R9A07G044) += r9a07g044l2-dev.dtb
- 
+
  dtb-$(CONFIG_ARCH_R9A07G054) += r9a07g054l2-smarc.dtb
- dtb-$(CONFIG_ARCH_R9A07G054) += r9a07g054l2-dev.dtb
+ dtb-$(CONFIG_ARCH_R9A07G044) += r9a07g054l2-dev.dtb
 +
 +DTC_FLAGS_vkrzv2l += -@
 +dtb-$(CONFIG_ARCH_R9A07G054) += vkrzv2l.dtb
@@ -965,7 +965,7 @@ index 000000000000..4a82256800af
 +	scif2_pins: scif2 {
 +		pinmux = <RZG2L_PORT_PINMUX(48, 0, 1)>, /* TxD */
 +			 <RZG2L_PORT_PINMUX(48, 1, 1)>, /* RxD */
-+ 			 <RZG2L_PORT_PINMUX(48, 3, 1)>, /* CTS# */
++			 <RZG2L_PORT_PINMUX(48, 3, 1)>, /* CTS# */
 +			 <RZG2L_PORT_PINMUX(48, 4, 1)>; /* RTS# */
 +	};
 +};
@@ -1143,7 +1143,7 @@ index 000000000000..a5c9d2661606
 +		mmp_reserved: linux,multimedia {
 +			compatible = "shared-dma-pool";
 +			reusable;
-+			reg = <0x00000000 0x68000000 0x0 0x8000000>;
++			reg = <0x00000000 0x68000000 0x0 0x10000000>;
 +		};
 +
 +		/* device specific region for contiguous allocations */
@@ -1205,7 +1205,7 @@ index 000000000000..a5c9d2661606
 +		regulator-boot-on;
 +		regulator-always-on;
 +	};
-+	
++
 +	reg_1p1v: regulator-vdd-core {
 +		compatible = "regulator-fixed";
 +		regulator-name = "fixed-1.1V";
@@ -1545,7 +1545,7 @@ index 000000000000..a5c9d2661606
 +		VANA-supply = <&imx219_vana_2v8>;
 +		VDIG-supply = <&imx219_vdig_1v8>;
 +		VDDL-supply = <&imx219_vddl_1v2>;
-+		
++
 +		reset-gpios = <&pinctrl RZG2L_GPIO(2, 0) GPIO_ACTIVE_HIGH>;
 +
 +		port {
@@ -1565,7 +1565,7 @@ index 000000000000..a5c9d2661606
 +	clock-frequency = <100000>;
 +	i2c-scl-falling-time-ns = <20>;
 +	i2c-scl-rising-time-ns = <350>;
-+	
++
 +	status = "okay";
 +
 +	lt8912b: hdmi_bridge@48 {
@@ -1626,11 +1626,11 @@ index 000000000000..a5c9d2661606
 +		clocks = <&x1_clk>;
 +		clock-names = "x1";
 +		assigned-clocks = <&versa3 0>,	/* DIFF2 Audio CLK2 */
-+				   		  <&versa3 1>,	/* DIFF1 ETH1/2 CLK */
-+						  <&versa3 2>,	/* SE3 HDMI CLK */
-+					   	  <&versa3 3>,	/* SE2 Audio Master CLK */
-+					   	  <&versa3 4>,	/* SE1 Audio CLK1 */
-+					   	  <&versa3 5>;	/* REF RZ EXT */
++				<&versa3 1>,	/* DIFF1 ETH1/2 CLK */
++				<&versa3 2>,	/* SE3 HDMI CLK */
++				<&versa3 3>,	/* SE2 Audio Master CLK */
++				<&versa3 4>,	/* SE1 Audio CLK1 */
++				<&versa3 5>;	/* REF RZ EXT */
 +		assigned-clock-rates =	<12288000>, <25000000>,
 +		                        <25000000>, <12288000>,
 +		                        <11289600>, <24000000>;
@@ -2477,7 +2477,7 @@ index 4e82647a621e..e8675c721f4f 100644
 @@ -48,6 +48,22 @@ config DRM_DISPLAY_CONNECTOR
  	  on ARM-based platforms. Saying Y here when this driver is not needed
  	  will not cause any issue.
- 
+
 +config DRM_LONTIUM_LT8912B
 +	tristate "Lontium LT8912B DSI/HDMI bridge"
 +	depends on OF
@@ -2868,7 +2868,7 @@ index 000000000000..be29679e94f6
 +		ret =  regmap_read(lt->regmap[I2C_MAIN], 0x00, &version[0]);
 +		if(0 > ret) {
 +			return ret;
-+		}		
++		}
 +		ret = regmap_read(lt->regmap[I2C_MAIN], 0x01, &version[1]);
 +		if(0 > ret) {
 +			return ret;
@@ -3078,8 +3078,8 @@ index 000000000000..be29679e94f6
 +
 +	dsi->lanes = lt->data_lanes;
 +	dsi->format = MIPI_DSI_FMT_RGB888;
-+	dsi->mode_flags = MIPI_DSI_MODE_VIDEO 
-+					| MIPI_DSI_MODE_VIDEO_SYNC_PULSE 
++	dsi->mode_flags = MIPI_DSI_MODE_VIDEO
++					| MIPI_DSI_MODE_VIDEO_SYNC_PULSE
 +					| MIPI_DSI_MODE_VIDEO_HSE;
 +
 +	ret = mipi_dsi_attach(dsi);
@@ -3368,7 +3368,7 @@ index 6153972e0127..785feb502969 100644
 @@ -97,7 +97,16 @@ config DRM_PANEL_FEIYANG_FY07024DI26A30D
  	  Say Y if you want to enable support for panels based on the
  	  Feiyang FY07024DI26A30-D MIPI-DSI interface.
- 
+
 -config DRM_PANEL_ILITEK_IL9322
 +config DRM_PANEL_FITIPOWER_EK79007AD
 +	tristate "Fitipower EK79007AD-based panels"
@@ -3745,16 +3745,16 @@ index 534dd7414d42..a29896a17547 100644
 @@ -3,6 +3,8 @@
   * Copyright (C) 2017-2018, Bootlin
   */
- 
+
 +//#define DEBUG
 +
  #include <linux/delay.h>
  #include <linux/device.h>
  #include <linux/err.h>
 @@ -21,6 +23,8 @@
- 
+
  #include <video/mipi_display.h>
- 
+
 +// #define CONFIG_SELFTEST_MODE
 +
  enum ili9881c_op {
@@ -3762,16 +3762,16 @@ index 534dd7414d42..a29896a17547 100644
  	ILI9881C_COMMAND,
 @@ -50,6 +54,7 @@ struct ili9881c {
  	const struct ili9881c_desc	*desc;
- 
+
  	struct regulator	*power;
 +	struct gpio_desc	*enable_gpio;
  	struct gpio_desc	*reset;
  };
- 
+
 @@ -453,6 +458,215 @@ static const struct ili9881c_instr k101_im2byl02_init[] = {
  	ILI9881C_COMMAND_INSTR(0xD3, 0x3F), /* VN0 */
  };
- 
+
 +/* support new panel PH720128T005ZBC */
 +static const struct ili9881c_instr ili9881c_init_ph720128t005[] = {
 +	ILI9881C_SWITCH_PAGE_INSTR(3),
@@ -3987,7 +3987,7 @@ index 534dd7414d42..a29896a17547 100644
 @@ -493,6 +707,32 @@ static int ili9881c_send_cmd_data(struct ili9881c *ctx, u8 cmd, u8 data)
  	return 0;
  }
- 
+
 +static int ili9881c_read_cmd_data(struct ili9881c *tftcp, u8 cmd)
 +{
 +	u8 buf = 0;
@@ -4020,16 +4020,16 @@ index 534dd7414d42..a29896a17547 100644
 @@ -512,6 +752,8 @@ static int ili9881c_prepare(struct drm_panel *panel)
  	gpiod_set_value(ctx->reset, 0);
  	msleep(20);
- 
+
 +	ili9881c_getID(ctx);
 +
  	for (i = 0; i < ctx->desc->init_length; i++) {
  		const struct ili9881c_instr *instr = &ctx->desc->init[i];
- 
+
 @@ -603,6 +845,23 @@ static const struct drm_display_mode k101_im2byl02_default_mode = {
  	.height_mm	= 217,
  };
- 
+
 +static const struct drm_display_mode ph720128t005_default_mode = {
 +	.clock		= 48000,
 +
@@ -4053,17 +4053,17 @@ index 534dd7414d42..a29896a17547 100644
 @@ -649,6 +908,9 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
  	ctx->dsi = dsi;
  	ctx->desc = of_device_get_match_data(&dsi->dev);
- 
+
 +	if(ili9881c_init_ph720128t005 == ctx->desc->init) {
 +		dev_notice(&dsi->dev, "Found Avnet 720128t005 display\n");
 +	}
  	drm_panel_init(&ctx->panel, &dsi->dev, &ili9881c_funcs,
  		       DRM_MODE_CONNECTOR_DSI);
- 
+
 @@ -658,21 +920,39 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
  		return PTR_ERR(ctx->power);
  	}
- 
+
 +    /* The enable GPIO is optional, this pin is MIPI DSI/HDMI switch select input. */
 +    ctx->enable_gpio = devm_gpiod_get_optional(&dsi->dev, "switch", GPIOD_OUT_HIGH);
 +    if (IS_ERR_OR_NULL(ctx->enable_gpio)) {
@@ -4084,28 +4084,28 @@ index 534dd7414d42..a29896a17547 100644
 +	} else {
 +		dev_dbg(&dsi->dev, "dsi-lanes = %d\n", dsi->lanes);
 +	}
- 
+
  	ret = drm_panel_of_backlight(&ctx->panel);
 -	if (ret)
 +	if (ret) {
 +		dev_err(&dsi->dev, "Couldn't get our backlight(%d)\n", ret);
  		return ret;
 +	}
- 
+
  	drm_panel_add(&ctx->panel);
- 
+
 +	/* non-burst mode with sync pulse */
  	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_SYNC_PULSE;
 +
  	dsi->format = MIPI_DSI_FMT_RGB888;
 -	dsi->lanes = 4;
- 
+
  	return mipi_dsi_attach(dsi);
  }
 @@ -699,9 +979,16 @@ static const struct ili9881c_desc k101_im2byl02_desc = {
  	.mode = &k101_im2byl02_default_mode,
  };
- 
+
 +static const struct ili9881c_desc ph720128t005_desc = {
 +	.init = ili9881c_init_ph720128t005,
 +	.init_length = ARRAY_SIZE(ili9881c_init_ph720128t005),
@@ -4125,16 +4125,16 @@ index 65c1f11080f6..a44897e43e16 100644
 +++ b/drivers/gpu/drm/rcar-du/rzg2l_mipi_dsi.c
 @@ -72,6 +72,7 @@ struct rzg2l_mipi_dsi {
  	unsigned long hsfreq;
- 
+
  	bool hsclkmode;	/* 0 for non-continuous and 1 for continuous clock mode */
 +	bool lt8912_dev;
- };
- 
+
+
  #define bridge_to_rzg2l_mipi_dsi(b) \
 @@ -186,6 +187,12 @@ static int rzg2l_mipi_dsi_startup(struct rzg2l_mipi_dsi *mipi_dsi)
  		timings.ths_zero = 23;
  	}
- 
+
 +	/* LT8912 has different timings */
 +	if(mipi_dsi->lt8912_dev) {
 +		timings.tlpx = 1;
@@ -4147,16 +4147,16 @@ index 65c1f11080f6..a44897e43e16 100644
 @@ -274,6 +281,10 @@ static int rzg2l_mipi_dsi_startup(struct rzg2l_mipi_dsi *mipi_dsi)
  	lptrnstsetr = LPTRNSTSETR_GOLPBKT(golpbkt);
  	rzg2l_mipi_dsi_write(mipi_dsi->link_mmio, LPTRNSTSETR, lptrnstsetr);
- 
+
 +	dev_dbg(mipi_dsi->dev, "Set DPHY and LINK with %lu kHz, lanes %d\n",
 +		mipi_dsi->hsfreq,
 +		mipi_dsi->lanes
 +	);
  	return 0;
  }
- 
+
 @@ -357,6 +368,11 @@ static void rzg2l_mipi_dsi_set_display_timing(struct rzg2l_mipi_dsi *mipi_dsi)
- 
+
  	rzg2l_mipi_dsi_write(mipi_dsi->link_mmio, VICH1SET1R,
  			     VICH1SET1R_DLY(delay[mipi_dsi->hsclkmode]));
 +
@@ -4165,12 +4165,12 @@ index 65c1f11080f6..a44897e43e16 100644
 +		mipi_dsi->mode_flags
 +	);
  }
- 
+
  static int rzg2l_mipi_dsi_start_hs_clock(struct rzg2l_mipi_dsi *mipi_dsi)
 @@ -794,6 +810,14 @@ static int rzg2l_mipi_dsi_host_attach(struct mipi_dsi_host *host,
  	mipi_dsi->format = device->format;
  	mipi_dsi->mode_flags = device->mode_flags;
- 
+
 +	mipi_dsi->lt8912_dev = !strcmp(device->name, "lt8912");
 +
 +	dev_dbg(mipi_dsi->dev, "To host attach device %s lanes %d, format %x, mode_flag %x\n",
@@ -4181,7 +4181,7 @@ index 65c1f11080f6..a44897e43e16 100644
 +	);
  	return 0;
  }
- 
+
 diff --git a/drivers/mtd/spi-nor/macronix.c b/drivers/mtd/spi-nor/macronix.c
 index 662b212787d4..6d74bb3cad62 100644
 --- a/drivers/mtd/spi-nor/macronix.c
@@ -4211,23 +4211,23 @@ index b4879306bb8a..ff1e933b411e 100644
 @@ -29,6 +29,9 @@
  #define RTL8211F_PHYCR1				0x18
  #define RTL8211F_INSR				0x1d
- 
+
 +#define RTL8211F_LED_CRTL			0x10
 +#define RTL8211F_EEE				0x11
 +
  #define RTL8211F_TX_DELAY			BIT(8)
  #define RTL8211F_RX_DELAY			BIT(3)
- 
+
 @@ -185,6 +188,9 @@ static int rtl8211f_config_init(struct phy_device *phydev)
  	u16 val;
  	int ret;
- 
+
 +	phy_write_paged(phydev, 0xd04, RTL8211F_LED_CRTL, 0x617f);
 +	phy_write_paged(phydev, 0xd04, RTL8211F_EEE, 0);
 +
  	val = RTL8211F_ALDPS_ENABLE | RTL8211F_ALDPS_PLL_OFF | RTL8211F_ALDPS_XTAL_OFF;
  	phy_modify_paged_changed(phydev, 0xa43, RTL8211F_PHYCR1, val, val);
- 
+
 diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
 index 94133708889d..82c1faf7f78f 100644
 --- a/scripts/Makefile.lib
@@ -4235,7 +4235,7 @@ index 94133708889d..82c1faf7f78f 100644
 @@ -325,6 +325,16 @@ cmd_dtc = $(HOSTCC) -E $(dtc_cpp_flags) -x assembler-with-cpp -o $(dtc-tmp) $< ;
  $(obj)/%.dtb: $(src)/%.dts $(DTC) FORCE
  	$(call if_changed_dep,dtc)
- 
+
 +quiet_cmd_dtco = DTCO     $@
 +cmd_dtco = $(HOSTCC) -E $(dtc_cpp_flags) -x assembler-with-cpp -o $(dtc-tmp) $< ; \
 +	$(DTC) -O dtb -o $@ -b 0 \
@@ -4249,6 +4249,6 @@ index 94133708889d..82c1faf7f78f 100644
  DT_CHECKER ?= dt-validate
  DT_BINDING_DIR := Documentation/devicetree/bindings
  # DT_TMP_SCHEMA may be overridden from Documentation/devicetree/bindings/Makefile
--- 
+--
 2.34.1
 
