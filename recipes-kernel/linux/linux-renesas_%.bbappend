@@ -6,6 +6,7 @@ SRC_URI_append_vkrzv2l = " \
 	file://0001-kernel-add-vkrzv2l-board-support.patch \
 	file://0002-fix-communication-issues-with-lt8912b.patch \
 	file://0003-Add-drpai-and-udmabuf-overlay.patch \
+	file://0006-workaround-EE00700-artifacts.patch \
 "
 
 KBUILD_DEFCONFIG = "defconfig"

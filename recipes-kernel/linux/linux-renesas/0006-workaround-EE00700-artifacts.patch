@@ -1,0 +1,133 @@
+From e741228e11ae924b5bc44bf8c29312f619c772cb Mon Sep 17 00:00:00 2001
+From: OpenEmbedded <oe.patch@oe>
+Date: Sat, 23 Mar 2024 21:50:34 +0200
+Subject: [PATCH] workaround for EE00700 artifacts
+
+---
+ .../gpu/drm/panel/panel-fitipower-ek79007ad.c | 56 +++++++++++++------
+ 1 file changed, 38 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/gpu/drm/panel/panel-fitipower-ek79007ad.c b/drivers/gpu/drm/panel/panel-fitipower-ek79007ad.c
+index 01283d26cda5..5b051912bdf4 100644
+--- a/drivers/gpu/drm/panel/panel-fitipower-ek79007ad.c
++++ b/drivers/gpu/drm/panel/panel-fitipower-ek79007ad.c
+@@ -49,7 +49,7 @@ struct ek79007ad {
+ 
+ /* support new panel vklcd07 (kwh070kq40-c08) */
+ static const struct ek79007ad_instr ek79007ad_init_vklcd07[] = {
+-	EK79007AD_COMMAND_INSTR(0xB0, 0x80),
++	EK79007AD_COMMAND_INSTR(0xB0, 0x00),
+ 	EK79007AD_COMMAND_INSTR(0xB1, 0x00),
+ 	EK79007AD_COMMAND_INSTR(0xB2, 0x00),
+ 	EK79007AD_COMMAND_INSTR(0xB3, 0x00),
+@@ -85,14 +85,34 @@ static int ek79007ad_read_cmd_data(struct ek79007ad* tftcp, u8 cmd) {
+ #ifdef DEBUG
+ static void ek79007ad_dump_reg(struct ek79007ad* ctx) {
+ 	unsigned int i;
+-	const u8 reg_dump_addr[] = {
+-		0x0A, 0x0D, 0x0E, 0x0F, 0x36, 0x80, 0x81, 0x82,
+-		0x83, 0x84, 0x85, 0xB0, 0xB1, 0xB2, 0xB3
++	typedef struct _DumpData_t{
++		u8 Addr;
++		const char* Name;
++	} DumpData_t;
++
++	const DumpData_t reg_dump_addr[] = {
++		{0x0A, "SLEEP                   "},
++		{0x0D, "INVERSION               "},
++		{0x0E, "Error on DSI            "},
++		{0x0F, "Self-Diagnostic(TBD)    "},
++		{0x36, "Address mode            "},
++		{0x80, "Gamma Ctrl 1            "},
++		{0x81, "Gamma Ctrl 2            "},
++		{0x82, "Gamma Ctrl 3            "},
++		{0x83, "Gamma Ctrl 4            "},
++		{0x84, "Gamma Ctrl 5            "},
++		{0x85, "Gamma Ctrl 6            "},
++		{0xB0, "POWER enable            "},
++		{0xB1, "Res, BIST, DITHER, HFRC "},
++		{0xB2, "Lanes, NBW              "},
++		{0xB3, "SEL, FRAME              "},
+ 	};
++	dev_dbg(&ctx->dsi->dev, "DSI ek79007ad_dump_reg\n");
+ 
+ 	for (i = 0; i < ARRAY_SIZE(reg_dump_addr); i++) {
+-		u8 addr = reg_dump_addr[i];
+-		dev_dbg(&ctx->dsi->dev, "Read reg[%02X] = %02X\n", addr,
++		u8 addr = reg_dump_addr[i].Addr;
++		const char* name = reg_dump_addr[i].Name;
++		dev_dbg(&ctx->dsi->dev, "Read reg %s[%02X] = %02X\n", name, addr,
+ 			ek79007ad_read_cmd_data(ctx, addr));
+ 	}
+ }
+@@ -103,11 +123,13 @@ static int ek79007ad_prepare(struct drm_panel* panel) {
+ 	u8 reg_b2;
+ 	int ret;
+ 
++	dev_dbg(&ctx->dsi->dev, "DSI ek79007ad_prepare()\n");
++
+ 	/* Power the panel */
+ 	ret = regulator_enable(ctx->power);
+ 	if (ret)
+ 		return ret;
+-	msleep(40);
++	msleep(20);
+ 
+ 	/* And reset it */
+ 	gpiod_set_value(ctx->reset, 1);
+@@ -139,7 +161,7 @@ static int ek79007ad_prepare(struct drm_panel* panel) {
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	ret = ek79007ad_send_cmd_data(ctx, 0xB2, reg_b2);
++		ret = ek79007ad_send_cmd_data(ctx, 0xB2, reg_b2);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -160,15 +182,15 @@ static int ek79007ad_prepare(struct drm_panel* panel) {
+ static int ek79007ad_enable(struct drm_panel* panel) {
+ 	struct ek79007ad* ctx = panel_to_ek79007ad(panel);
+ 
+-	msleep(30);
+-
+-	return mipi_dsi_dcs_exit_sleep_mode(ctx->dsi);
++	int rc = mipi_dsi_dcs_exit_sleep_mode(ctx->dsi);
++	msleep(5);
++	return rc;
+ }
+ 
+ static int ek79007ad_disable(struct drm_panel* panel) {
+ 	struct ek79007ad* ctx = panel_to_ek79007ad(panel);
+ 
+-	return mipi_dsi_dcs_enter_sleep_mode(ctx->dsi);
++		return mipi_dsi_dcs_enter_sleep_mode(ctx->dsi);
+ }
+ 
+ static int ek79007ad_unprepare(struct drm_panel* panel) {
+@@ -182,8 +204,6 @@ static int ek79007ad_unprepare(struct drm_panel* panel) {
+ 
+ 	mipi_dsi_dcs_enter_sleep_mode(ctx->dsi);
+ 	regulator_disable(ctx->power);
+-	gpiod_set_value(ctx->reset, 1);
+-
+ 	return 0;
+ }
+ 
+@@ -192,13 +212,13 @@ static const struct drm_display_mode vklcd07_default_mode = {
+ 
+ 	.hdisplay = 1024,
+ 	.hsync_start = 1024 + 160,
+-	.hsync_end = 1024 + 160 + 1,
+-	.htotal = 1024 + 160 + 1 + 160,
++	.hsync_end = 1024 + 160 + 70,
++	.htotal = 1024 + 160 + 70 + 90,
+ 
+ 	.vdisplay = 600,
+ 	.vsync_start = 600 + 23,
+-	.vsync_end = 600 + 23 + 1,
+-	.vtotal = 600 + 23 + 1 + 12,
++	.vsync_end = 600 + 23 + 5,
++	.vtotal = 600 + 23 + 5 + 7,
+ 
+ 	.width_mm = 154,
+ 	.height_mm = 86,

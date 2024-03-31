@@ -1597,7 +1597,7 @@ index 000000000000..a5c9d2661606
 +		status = "disabled";
 +
 +		interrupt-parent = <&pinctrl>;
-+		interrupts = <RZG2L_GPIO(2, 1) IRQ_TYPE_EDGE_FALLING>;
++		interrupts = <RZG2L_GPIO(2, 1) IRQ_TYPE_LEVEL_LOW>;
 +		irq-gpios = <&pinctrl RZG2L_GPIO(2, 1) GPIO_ACTIVE_HIGH>;   /* DSI_TS_nINT */
 +	};
 +
@@ -1608,7 +1608,7 @@ index 000000000000..a5c9d2661606
 +		status = "disabled";
 +
 +		interrupt-parent = <&pinctrl>;
-+		interrupts = <RZG2L_GPIO(2, 1) IRQ_TYPE_EDGE_FALLING>;
++		interrupts = <RZG2L_GPIO(2, 1) IRQ_TYPE_LEVEL_LOW>;
 +		irq-gpios = <&pinctrl RZG2L_GPIO(2, 1) GPIO_ACTIVE_HIGH>;   /* DSI_TS_nINT */
 +	};
 +};
